@@ -134,6 +134,8 @@ class Crawler(object):
                 f.write(html)
             htmls.append(f_name)
 
+        config=pdfkit.configuration(wkhtmltopdf=r"C:\ZXF_Program_Files\wkhtmltopdf\bin\wkhtmltopdf.exe")
+        pdfkit.from_file(htmls, self.name + ".pdf", options=options,configuration=config)
         print("HTML文件下载完成，开始转换PDF")
         pdfkit.from_file(input=htmls, output_path=self.name + ".pdf", options=options)
         print("PDF转换完成，开始清除无用HTML文件")
@@ -174,14 +176,14 @@ class LiaoxuefengPythonCrawler(Crawler):
 
             html = str(body)
             # body中的img标签的src相对路径的改成绝对路径
-            pattern = "(<img .*?src=\")(.*?)(\")"
+            pattern = "(<img .*?data-src=\")(.*?)(\")(.*?src=\")(.*?)(\")"
 
             def func(m):
-                if not m.group(2).startswith("http"):
-                    rtn = "".join([m.group(1), self.domain, m.group(2), m.group(3)])
+                if (not m.group(5).startswith("https")) and (not m.group(5).startswith("http")):
+                    rtn = "".join([m.group(1), r'https://www.liaoxuefeng.com', m.group(2), m.group(3),m.group(4),r'https://www.liaoxuefeng.com', m.group(2),m.group(6)])
                     return rtn
                 else:
-                    return "".join([m.group(1), m.group(2), m.group(3)])
+                    return "".join([m.group(1), m.group(2), m.group(3),m.group(4),m.group(5),m.group(6)])
 
             html = re.compile(pattern).sub(func, html)
             html = html_template.format(content=html)
@@ -192,6 +194,6 @@ class LiaoxuefengPythonCrawler(Crawler):
 
 
 if __name__ == '__main__':
-    start_url = "https://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000"
-    crawler = LiaoxuefengPythonCrawler("廖雪峰Python教程", start_url)
+    start_url = "https://www.liaoxuefeng.com/wiki/1252599548343744"
+    crawler = LiaoxuefengPythonCrawler("廖雪峰Java教程", start_url)
     crawler.run(0)
